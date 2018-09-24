@@ -92,6 +92,13 @@ On peut y voir les poits de montages, leurs droits, les devices, le `$PATH`
 ```bash
     wget https://github.com/rkt/rkt/releases/download/v1.30.0/rkt-1.30.0-1.x86_64.rpm
     rpm -ivh rkt-1.30.0-1.x86_64.rpm
+    systemd-run rkt --insecure-options=image --stage1-name=coreos.com/rkt/stage1-fly:1.29.0  run docker://alpine --exec /bin/sleep -- 9999
 ```
 
+| Command/Option            | Description                            |
+| ------------------------- | -------------------------------------- |
+| `systemd-run `            | Lancer un programme comme service unit |
+| `--insecure-option=image` |
 
+
+L'option `--stage1-name=coreos.com/rkt/stage1-fly:1.29.0` sert à ne pas utiliser la libraries `systemd` en version `233` qui n'est pas disponible sur CentOs
