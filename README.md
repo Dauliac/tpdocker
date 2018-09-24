@@ -3,7 +3,7 @@
 ```
     $systemctl start docker; systemctl enable docker
 ```
-#Pourquoi pas en root ?
+## Pourquoi pas en root ?
 Pour authoriser un mec à utiliser docker sans etre root on utilise
 ```bash
     $usermod -aG docker user
@@ -15,7 +15,7 @@ Cela permet à un user d'utiliser le cli docker sans avoir toutes les permission
 
 ![root](http://memepeoplesuck.com/wp-content/uploads/2014/05/1400676453622.jpg)
 
-##Ubuntu
+## Ubuntu
 Pour cette partie nous irons vite car nous connaissons déja les commandes de base de docker
 Pour lancer un container ubuntu on fait:
 ```bash
@@ -87,7 +87,7 @@ Ce fichier est une description d'un filesystem en `json`.
 On peut y voir les poits de montages, leurs droits, les devices, le `$PATH`
 
 
-##Rkt:
+## Rkt:
 
 ```bash
     wget https://github.com/rkt/rkt/releases/download/v1.30.0/rkt-1.30.0-1.x86_64.rpm
