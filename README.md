@@ -171,6 +171,8 @@ Voici notre Dockerfile:
 
 ## Docker api:
 
+Les containers:
+
 ```bash
     [root@localhost ~]# curl --unix-socket /var/run/docker.sock http:/containers/json | jq
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
@@ -223,3 +225,59 @@ Voici notre Dockerfile:
       }
     ]
 ```
+
+Les images docker (on aime les jsons spam):
+
+```bash
+    [root@localhost ~]# curl --unix-socket /var/run/docker.sock http:/images/json | jq
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100  1647  100  1647    0     0   405k      0 --:--:-- --:--:-- --:--:--  536k
+    [
+      {
+        "Containers": -1,
+        "Created": 1538396101,
+        "Id": "sha256:601074aa1df60133b976f031c4bfcfc6c5d2ced8296fa9a204af1b692c1e3b90",
+        "Labels": null,
+        "ParentId": "sha256:dbe11adb42cfa6a36aa3cfa50c71d262f6aa91bf0c8d9004c0f3e7cb98fe9022",
+        "RepoDigests": [
+          "<none>@<none>"
+        ],
+        "RepoTags": [
+          "<none>:<none>"
+        ],
+        "SharedSize": -1,
+        "Size": 158361209,
+        "VirtualSize": 158361209
+      },
+      ...
+      {
+        "Containers": -1,
+        "Created": 1536096084,
+        "Id": "sha256:f2aae6ff5d896839bfb8609cb1510bcf36efcb6950683c3bcfb760668b0eefbe",
+        "Labels": null,
+        "ParentId": "",
+        "RepoDigests": [
+          "debian@sha256:07fe888a6090482fc6e930c1282d1edf67998a39a09a0b339242fbfa2b602fff"
+        ],
+        "RepoTags": [
+          "debian:latest"
+        ],
+        "SharedSize": -1,
+        "Size": 100576015,
+        "VirtualSize": 100576015
+      }
+    ]
+```
+
+To get container address :
+
+```bash
+[root@localhost ~]# curl --unix-socket /var/run/docker.sock http:/containers/sad_perlman/json | jq ".NetworkSettings.Networks.bridge.IPAddress"
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  4930    0  4930    0     0  2132k      0 --:--:-- --:--:-- --:--:-- 2407k
+"172.17.0.2"
+```
+
+![localhost](https://proxy.duckduckgo.com/iur/?f=1&image_host=http%3A%2F%2Fblog.totaljobs.com%2Fwp-content%2Fuploads%2F2012%2F11%2Fip_meme.jpg&u=https://blog.totaljobs.com/wp-content/uploads/2012/11/ip_meme.jpg)
