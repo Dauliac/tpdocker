@@ -142,25 +142,84 @@ We can curl the container from the vm's ip or from the `0.0.0.0` ip of the conta
 ```
 
 Voici notre Dockerfile:
+
 ```bash
-[root@localhost dockerfile]# cat Dockerfile
-FROM debian:latest
+    [root@localhost dockerfile]# cat Dockerfile
+    FROM debian:latest
 
-ARG PYTHON_PORC=8888
+    ARG PYTHON_PORC=8888
 
-ENV PORT=${PYTHON_PORC}
+    ENV PORT=${PYTHON_PORC}
 
-RUN mkdir /web && \
-    apt-get update && apt-get upgrade && apt-get install python3 -y && \
-    groupadd -g 999 nagini && \
-    useradd -r -u 999 -g nagini nagini
+    RUN mkdir /web && \
+        apt-get update && apt-get upgrade && apt-get install python3 -y && \
+        groupadd -g 999 nagini && \
+        useradd -r -u 999 -g nagini nagini
 
-WORKDIR /web
+    WORKDIR /web
 
-COPY test.html /web
+    COPY test.html /web
 
-EXPOSE $PORT
+    EXPOSE $PORT
 
-USER nagini:nagini
+    USER nagini:nagini
 
-ENTRYPOINT /usr/bin/python3 -m http.server $PORT
+    ENTRYPOINT /usr/bin/python3 -m http.server $PORT
+```
+
+![nagini](https://i.imgflip.com/2j4bdp.jpg)
+
+## Docker api:
+
+```bash
+    [root@localhost ~]# curl --unix-socket /var/run/docker.sock http:/containers/json | jq
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100   907  100   907    0     0   113k      0 --:--:-- --:--:-- --:--:--  147k
+    [
+      {
+        "Id": "ca8dadf7ab9e3d26dd388a947ded6fd5356018cd0217173d5397acea1d0904fd",
+        "Names": [
+          "/sad_perlman"
+        ],
+        "Image": "601074aa1df6",
+        "ImageID": "sha256:601074aa1df60133b976f031c4bfcfc6c5d2ced8296fa9a204af1b692c1e3b90",
+        "Command": "/bin/sh -c '/usr/bin/python3 -m http.server $PORT'",
+        "Created": 1538396154,
+        "Ports": [
+          {
+            "IP": "0.0.0.0",
+            "PrivatePort": 9999,
+            "PublicPort": 1010,
+            "Type": "tcp"
+          }
+        ],
+        "Labels": {},
+        "State": "running",
+        "Status": "Up About an hour",
+        "HostConfig": {
+          "NetworkMode": "default"
+        },
+        "NetworkSettings": {
+          "Networks": {
+            "bridge": {
+              "IPAMConfig": null,
+              "Links": null,
+              "Aliases": null,
+              "NetworkID": "941ca1a31b075af17ddadf76ec836566ca7a51832b685ab95a265f6e8247fa51",
+              "EndpointID": "35123ab1f45ed197585542792af71209304f5892a40d3378c03d1c5b9a0b0976",
+              "Gateway": "172.17.0.1",
+              "IPAddress": "172.17.0.2",
+              "IPPrefixLen": 16,
+              "IPv6Gateway": "",
+              "GlobalIPv6Address": "",
+              "GlobalIPv6PrefixLen": 0,
+              "MacAddress": "02:42:ac:11:00:02",
+              "DriverOpts": null
+            }
+          }
+        },
+        "Mounts": []
+      }
+    ]
+```
