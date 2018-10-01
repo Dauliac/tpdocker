@@ -118,6 +118,8 @@ On peut y voir les points de montages, leurs droits, les devices, le `$PATH`
 
 We can curl the container from the vm's ip or from the `0.0.0.0` ip of the container
 ```bash
+    docker run -d -it -p 1010:9999 601074aa1df6
+    docker build --build-arg PYTHON_PORC=9999 .
     [root@localhost dockerfile]# docker ps
     CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
     ca8dadf7ab9e        601074aa1df6        "/bin/sh -c '/usr/bi…"   5 seconds ago       Up 4 seconds        0.0.0.0:1010->9999/tcp   sad_perlman
