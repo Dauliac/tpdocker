@@ -1,9 +1,9 @@
-# TP 1 B3
+#TP 1 B3
 
 ```
     $systemctl start docker; systemctl enable docker
 ```
-## Pourquoi pas en root ?
+#Pourquoi pas en root ?
 Pour authoriser un mec à utiliser docker sans etre root on utilise
 ```bash
     $usermod -aG docker user
@@ -15,7 +15,7 @@ Cela permet à un user d'utiliser le cli docker sans avoir toutes les permission
 
 ![root](http://memepeoplesuck.com/wp-content/uploads/2014/05/1400676453622.jpg)
 
-## Ubuntu
+##Ubuntu
 Pour cette partie nous irons vite car nous connaissons déja les commandes de base de docker
 Pour lancer un container ubuntu on fait:
 ```bash
@@ -84,21 +84,81 @@ tmpfs ou tempory file system est un système de fichiers en ram qui set à avoir
 
 ## Runc
 Ce fichier est une description d'un filesystem en `json`.
-On peut y voir les poits de montages, leurs droits, les devices, le `$PATH`
-
+On peut y voir les points de montages, leurs droits, les devices, le `$PATH`
 
 ## Rkt:
 
 ```bash
     wget https://github.com/rkt/rkt/releases/download/v1.30.0/rkt-1.30.0-1.x86_64.rpm
     rpm -ivh rkt-1.30.0-1.x86_64.rpm
+```
+
+```bash
     systemd-run rkt --insecure-options=image --stage1-name=coreos.com/rkt/stage1-fly:1.29.0  run docker://alpine --exec /bin/sleep -- 9999
 ```
 
-| Command/Option            | Description                            |
-| ------------------------- | -------------------------------------- |
-| `systemd-run `            | Lancer un programme comme service unit |
-| `--insecure-option=image` |
+- on fait tourner `rkt` avec `systemd-run` pour créer une service unit
+- `--insecure-options=image` `run docker://alpine` run le container depuis un registre docker avec une image alpine
+- `exec /bin/sleep -- 9999` execute un sleep sur le container*
 
+## Dockerfile
 
-L'option `--stage1-name=coreos.com/rkt/stage1-fly:1.29.0` sert à ne pas utiliser la libraries `systemd` en version `233` qui n'est pas disponible sur CentOs
+```bash
+    if [ "$1" = '' ]; then
+    chown -R postgres "$PGDATA"
+
+    if [ -z "$(ls -A "$PGDATA")" ]; then
+        gosu postgres initdb
+    fi
+
+    exec gosu postgres "$@"
+    fi
+    exec "$@"
+```
+
+We can curl the container from the vm's ip or from the `0.0.0.0` ip of the container
+```bash
+    [root@localhost dockerfile]# docker ps
+    CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
+    ca8dadf7ab9e        601074aa1df6        "/bin/sh -c '/usr/bi…"   5 seconds ago       Up 4 seconds        0.0.0.0:1010->9999/tcp   sad_perlman
+    [root@localhost dockerfile]# curl 0.0.0.0:1010
+    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+    <html>
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ascii">
+    <title>Directory listing for /</title>
+    </head>
+    <body>
+    <h1>Directory listing for /</h1>
+    <hr>
+    <ul>
+    <li><a href="test.html">test.html</a></li>
+    </ul>
+    <hr>
+    </body>
+    </html>
+```
+
+Voici notre Dockerfile:
+```bash
+[root@localhost dockerfile]# cat Dockerfile
+FROM debian:latest
+
+ARG PYTHON_PORC=8888
+
+ENV PORT=${PYTHON_PORC}
+
+RUN mkdir /web && \
+    apt-get update && apt-get upgrade && apt-get install python3 -y && \
+    groupadd -g 999 nagini && \
+    useradd -r -u 999 -g nagini nagini
+
+WORKDIR /web
+
+COPY test.html /web
+
+EXPOSE $PORT
+
+USER nagini:nagini
+
+ENTRYPOINT /usr/bin/python3 -m http.server $PORT
