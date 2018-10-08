@@ -1,9 +1,9 @@
-#TP 1 B3
+# TP 1 B3
 
 ```
     $systemctl start docker; systemctl enable docker
 ```
-#Pourquoi pas en root ?
+# Pourquoi pas en root ?
 Pour authoriser un mec à utiliser docker sans etre root on utilise
 ```bash
     $usermod -aG docker user
@@ -15,7 +15,7 @@ Cela permet à un user d'utiliser le cli docker sans avoir toutes les permission
 
 ![root](http://memepeoplesuck.com/wp-content/uploads/2014/05/1400676453622.jpg)
 
-##Ubuntu
+## Ubuntu
 Pour cette partie nous irons vite car nous connaissons déja les commandes de base de docker
 Pour lancer un container ubuntu on fait:
 ```bash
@@ -116,7 +116,8 @@ On peut y voir les points de montages, leurs droits, les devices, le `$PATH`
     exec "$@"
 ```
 
-We can curl the container from the vm's ip or from the `0.0.0.0` ip of the container
+On peut curl le container depuis l'ip de la vm ou en local depuis `0.0.0.0`
+
 ```bash
     docker run -d -it -p 1010:9999 601074aa1df6
     docker build --build-arg PYTHON_PORC=9999 .
@@ -270,7 +271,7 @@ Les images docker (on aime les jsons spam):
     ]
 ```
 
-To get container address :
+Pour obtenir l'ip du container:
 
 ```bash
 [root@localhost ~]# curl --unix-socket /var/run/docker.sock http:/containers/sad_perlman/json | jq ".NetworkSettings.Networks.bridge.IPAddress"
@@ -281,3 +282,102 @@ To get container address :
 ```
 
 ![localhost](https://proxy.duckduckgo.com/iur/?f=1&image_host=http%3A%2F%2Fblog.totaljobs.com%2Fwp-content%2Fuploads%2F2012%2F11%2Fip_meme.jpg&u=https://blog.totaljobs.com/wp-content/uploads/2012/11/ip_meme.jpg)
+
+## Docker daemon:
+
+### Secomp:
+
+`secomp` est activé par défaut dans docker et il n'est pas recommandé de changer le profil par défaut.
+Il s'agit d'un système de white list qui met en place un système de permission sur les appels systemes. Cette whiteliste se met en place sur `personality`, `socket`, `socketcall` et sur les autres variantes des appels système. - [source](https://docs.docker.com/engine/security/seccomp/#pass-a-profile-for-a-container)
+
+```bash
+    [root@localhost]# docker info
+    ...
+    Profile: /etc/docker/seccomp.json
+    ...
+```
+
+### User namespace:
+
+Install user namespaces:
+```bash
+    grubby --args="user_namespace.enable=1" --update-kernel=/boot/vmlinuz-3.10.0-862.2.3.el7.x86_64
+    reboot
+    cat /etc/docker/daemon.json
+    {
+        "userns-remap": "vagrant"
+    }
+```
+
+## Docker compose:
+
+On sait déja faire: [exemple](https://github.com/Dauliac/cloud/tree/master/exemple)
+
+Ah et le service systemd en cadeau:
+
+```bash
+[dauliac@ghostbuster ~]$ cat /etc/systemd/system/common_server.service
+[Unit]
+Description=Server service: traefik/nextcloud/mysql
+After=network.target docker.service
+[Service]
+Type=simple
+WorkingDirectory=/srv/common/
+ExecStart=/usr/local/bin/docker-compose -f /srv/common/docker-compose.yml up
+ExecStop=/usr/local/bin/docker-compose -f /srv/common/docker-compose.yml down
+Restart=always
+[Install]
+WantedBy=multi-user.target
+```
+
+## Portainer:
+C'est comme la partie du dessus mais en plus facile.
+
+Voici quand meme le `docker-compose`
+
+```yaml
+version: '2'
+
+services:
+  proxy:
+    build: nginx/
+    container_name: "portainer-proxy"
+    ports:
+      - "80:80"
+    networks:
+      - local
+
+  templates:
+    image: portainer/templates
+    container_name: "portainer-templates"
+    networks:
+      - local
+
+  portainer:
+    image: portainer/portainer
+    container_name: "portainer-app"
+  #Automatically choose 'Manage the Docker instance where Portainer is running' by adding <--host=unix:///var/run/docker.sock> to the command
+    command: --templates http://templates/templates.json
+    networks:
+      - local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/portainer/data:/data
+
+  watchtower:
+    image: v2tec/watchtower
+    container_name: "portainer-watchtower"
+    command: --cleanup portainer-app portainer-watchtower portainer/templates
+    networks:
+      - local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  local:
+    driver: bridge
+```
+
+## Fini:
+![merci](https://pics.me.me/thank-you-so-much-13606464.png)
+
