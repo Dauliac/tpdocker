@@ -68,7 +68,7 @@ Ici on peut voir les cgroups:
 
 ## tmpfs:
 
-tmpfs ou tempory file system est un système de fichiers en ram qui set à avoir un accès rapide en io sur des fichiers. On peut notement s'en servir pour du swap ou pour mounter le /tmp
+tmpfs ou tempory file system est un système de fichiers en ram qui set à avoir un accès rapide en io sur des fichiers. On peut notement s'en servir pour du swap ou pour mounter le /tmp ou l'hibernation
 
 ```bash
     docker volume create --driver local --opt type=tmpfs --opt device=tmpfs --opt o=size=100m,uid=1000 foo
@@ -336,42 +336,20 @@ C'est comme la partie du dessus mais en plus facile.
 Voici quand meme le `docker-compose`
 
 ```yaml
-version: '2'
+version: '3'
 
 services:
-  proxy:
-    build: nginx/
-    container_name: "portainer-proxy"
-    ports:
-      - "80:80"
-    networks:
-      - local
-
-  templates:
-    image: portainer/templates
-    container_name: "portainer-templates"
-    networks:
-      - local
-
   portainer:
     image: portainer/portainer
-    container_name: "portainer-app"
-  #Automatically choose 'Manage the Docker instance where Portainer is running' by adding <--host=unix:///var/run/docker.sock> to the command
-    command: --templates http://templates/templates.json
-    networks:
-      - local
+    command: -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/portainer/data:/data
+      - portainer_data:/data
+    network:
+        - local
 
-  watchtower:
-    image: v2tec/watchtower
-    container_name: "portainer-watchtower"
-    command: --cleanup portainer-app portainer-watchtower portainer/templates
-    networks:
-      - local
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  portainer_data:
 
 networks:
   local:
